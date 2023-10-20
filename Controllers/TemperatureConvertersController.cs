@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ConverterRestApi.Data;
 using ConverterRestApi.Model;
+using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 
 namespace ConverterRestApi.Controllers
 {
@@ -15,10 +16,12 @@ namespace ConverterRestApi.Controllers
     public class TemperatureConvertersController : ControllerBase
     {
         private readonly ConverterRestApiContext _context;
+        private readonly ConveterTools _converter;
 
-        public TemperatureConvertersController(ConverterRestApiContext context)
+        public TemperatureConvertersController(ConverterRestApiContext context, ConveterTools converter)
         {
             _context = context;
+            _converter = converter;
         }
 
         // GET: api/TemperatureConverters
@@ -84,30 +87,15 @@ namespace ConverterRestApi.Controllers
         // POST: api/TemperatureConverters
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TemperatureConverter>> PostTemperatureConverter(TemperatureConverter temperatureConverter)
+        public IActionResult PostTemperatureConverter(Request req)
         {
-          if (_context.TemperatureUnits == null)
-          {
-              return Problem("Entity set 'ConverterRestApiContext.TemperatureUnits'  is null.");
-          }
-            _context.TemperatureUnits.Add(temperatureConverter);
-            try
+            Response response = _converter.DoConvert(req.Num, req.FromUnit, req.ToUnit);
+            if (response.ResCode == 200)
             {
-                await _context.SaveChangesAsync();
+                return Ok(response.ResMsg);
             }
-            catch (DbUpdateException)
-            {
-                if (TemperatureConverterExists(temperatureConverter.UnitName))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtAction("GetTemperatureConverter", new { id = temperatureConverter.UnitName }, temperatureConverter);
+            else
+                return BadRequest(response.ResMsg);
         }
 
         // DELETE: api/TemperatureConverters/5

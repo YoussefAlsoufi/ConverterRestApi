@@ -12,6 +12,7 @@ builder.Services.AddDbContext<ConverterRestApiContext>(options =>
 
 var dbContext = builder.Services.BuildServiceProvider().GetService<ConverterRestApiContext>();
 builder.Services.AddScoped<DataAccess>();
+builder.Services.AddScoped<ConveterTools>();
 //var te = dbContext?.DataUnits;
 //DataAccess n = new(dbContext); 
 

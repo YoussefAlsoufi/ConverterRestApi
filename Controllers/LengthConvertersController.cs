@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ConverterRestApi.Data;
 using ConverterRestApi.Model;
+using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 
 namespace ConverterRestApi.Controllers
 {
@@ -15,10 +16,12 @@ namespace ConverterRestApi.Controllers
     public class LengthConvertersController : ControllerBase
     {
         private readonly ConverterRestApiContext _context;
+        private readonly ConveterTools _converter;
 
-        public LengthConvertersController(ConverterRestApiContext context)
+        public LengthConvertersController(ConverterRestApiContext context, ConveterTools converter)
         {
             _context = context;
+            _converter = converter;
         }
 
         // GET: api/LengthConverters
@@ -84,30 +87,15 @@ namespace ConverterRestApi.Controllers
         // POST: api/LengthConverters
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<LengthConverter>> PostLengthConverter(LengthConverter lengthConverter)
+        public IActionResult PostLengthConverter(Request req)
         {
-          if (_context.LengthUnits == null)
-          {
-              return Problem("Entity set 'ConverterRestApiContext.LengthUnits'  is null.");
-          }
-            _context.LengthUnits.Add(lengthConverter);
-            try
+            Response response = _converter.DoConvert(req.Num, req.FromUnit, req.ToUnit);
+            if (response.ResCode == 200)
             {
-                await _context.SaveChangesAsync();
+                return Ok(response.ResMsg);
             }
-            catch (DbUpdateException)
-            {
-                if (LengthConverterExists(lengthConverter.UnitName))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtAction("GetLengthConverter", new { id = lengthConverter.UnitName }, lengthConverter);
+            else
+                return BadRequest(response.ResMsg);
         }
 
         // DELETE: api/LengthConverters/5
