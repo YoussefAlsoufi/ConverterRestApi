@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ConverterRestApi.Data;
 using ConverterRestApi.Model;
+using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 
 namespace ConverterRestApi.Controllers
 {
@@ -15,10 +16,12 @@ namespace ConverterRestApi.Controllers
     public class DataConvertersController : ControllerBase
     {
         private readonly ConverterRestApiContext _context;
+        private readonly ConveterTools _converter;
 
-        public DataConvertersController(ConverterRestApiContext context)
+        public DataConvertersController(ConverterRestApiContext context, ConveterTools converter)
         {
             _context = context;
+            _converter = converter;
         }
 
         // GET: api/DataConverters
@@ -84,30 +87,15 @@ namespace ConverterRestApi.Controllers
         // POST: api/DataConverters
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<DataConverter>> PostDataConverter(DataConverter dataConverter)
+        public IActionResult PostDataConverter(Request req)
         {
-          if (_context.DataUnits == null)
-          {
-              return Problem("Entity set 'ConverterRestApiContext.DataUnits'  is null.");
-          }
-            _context.DataUnits.Add(dataConverter);
-            try
+            Response response = _converter.DoConvert(req.Num, req.FromUnit, req.ToUnit);
+            if (response.ResCode == 200)
             {
-                await _context.SaveChangesAsync();
+                return Ok(response.ResMsg);
             }
-            catch (DbUpdateException)
-            {
-                if (DataConverterExists(dataConverter.UnitName))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtAction("GetDataConverter", new { id = dataConverter.UnitName }, dataConverter);
+            else
+                return BadRequest(response.ResMsg);
         }
 
         // DELETE: api/DataConverters/5
