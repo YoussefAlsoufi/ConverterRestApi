@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 namespace ConverterRestApi.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
     public class TemperatureConvertersController : ControllerBase
     {
         private readonly ConverterRestApiContext _context;

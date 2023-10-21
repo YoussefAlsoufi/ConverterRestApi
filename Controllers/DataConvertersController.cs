@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ConverterRestApi.Controllers
 {
     [Route("api/[controller]")]
-    public class DataConvertersController : Controller
+    public class DataConvertersController : ControllerBase
     {
         private readonly ConveterTools converter;
         public DataConvertersController(ConveterTools _converter)
