@@ -88,7 +88,7 @@ namespace ConverterRestApi.Controllers
         [HttpPost]
         public IActionResult PostLengthConverter(Request req)
         {
-            Response response = _converter.DoConvert(req.Num, req.FromUnit, req.ToUnit);
+            Response response = _converter.ConvertLength(req.Num, req.FromUnit, req.ToUnit);
             if (response.ResCode == 200)
             {
                 return Ok(response.ResMsg);

@@ -26,29 +26,19 @@ namespace ConverterRestApi
         }
 
 
-        public Response DoConvert(string num, string fromUnit, string toUnit)
+        public Response ConvertData (string num, string fromUnit, string toUnit)
         {
             Response response = new();
             double result;
             string resultMessage;
-            var (checkStatus, usedSection) = GenericCheckInputs(num, fromUnit, toUnit);
-            
+            var checkStatus = GenericCheckInputs1(num, fromUnit, toUnit, DataTypeSection);
             if (checkStatus)
             {
                 double inputValue = Convert.ToDouble(num);
-                if (usedSection == TemperatureSection)
-                {
-                    result = TempConvert(inputValue, Singularize(fromUnit), Singularize(toUnit));
-                }
-                else
-                {
+                double from = Convert.ToDouble(DataTypeSection[Singularize(fromUnit)]);
+                double to = Convert.ToDouble(DataTypeSection[Singularize(toUnit)]);
 
-                    double from = Convert.ToDouble(usedSection[Singularize(fromUnit)]);
-                    double to = Convert.ToDouble(usedSection[Singularize(toUnit)]);
-
-                    result = inputValue * from / to;
-
-                }
+                result = inputValue * from / to;
 
                 resultMessage = $"( {num} {fromUnit},  {toUnit}) -> {result.ToString()}";
                 response.ResMsg = resultMessage;
@@ -63,10 +53,76 @@ namespace ConverterRestApi
                 response.ResCode = 400;
                 return response;
             }
-
         }
+        public Response ConvertLength(string num, string fromUnit, string toUnit)
+        {
+            Response response = new();
+            double result;
+            string resultMessage;
+            var checkStatus = GenericCheckInputs1(num, fromUnit, toUnit, LengthSection);
+            if (checkStatus)
+            {
+                double inputValue = Convert.ToDouble(num);
+                double from = Convert.ToDouble(LengthSection[Singularize(fromUnit)]);
+                double to = Convert.ToDouble(LengthSection[Singularize(toUnit)]);
 
-        private (bool valid, Dictionary<string,string> UsedSection) GenericCheckInputs(string inputNum, string fromUnit, string toUnit)
+                result = inputValue * from / to;
+
+                resultMessage = $"( {num} {fromUnit},  {toUnit}) -> {result.ToString()}";
+                response.ResMsg = resultMessage;
+                response.ResCode = 200;
+                return response;
+            }
+            else
+            {
+                resultMessage = $"Please, Check your Inputs again! you have entered incorrect units or nulls.";
+
+                response.ResMsg = resultMessage;
+                response.ResCode = 400;
+                return response;
+            }
+        }
+        public Response ConvertTemperature(string num, string fromUnit, string toUnit)
+        {
+            Response response = new();
+            double result;
+            string resultMessage;
+            var checkStatus = GenericCheckInputs1(num, fromUnit, toUnit, TemperatureSection);
+            if (checkStatus)
+            {
+                double inputValue = Convert.ToDouble(num);
+                result = TempConvert(inputValue, Singularize(fromUnit), Singularize(toUnit));
+
+                resultMessage = $"( {num} {fromUnit},  {toUnit}) -> {result.ToString()}";
+                response.ResMsg = resultMessage;
+                response.ResCode = 200;
+                return response;
+            }
+            else
+            {
+                resultMessage = $"Please, Check your Inputs again! you have entered incorrect units or nulls.";
+
+                response.ResMsg = resultMessage;
+                response.ResCode = 400;
+                return response;
+            }
+        }
+        private bool GenericCheckInputs1(string inputNum, string fromUnit, string toUnit, Dictionary<string, string> usedSection)
+        {
+            bool wrongInputs = true;
+
+            if (!usedSection.ContainsKey(Singularize(fromUnit)) || !usedSection.ContainsKey(Singularize(toUnit)))
+            {
+                wrongInputs = false; 
+            }
+
+            bool emptyCheck = (!string.IsNullOrEmpty(inputNum)) && (!string.IsNullOrEmpty(fromUnit)) && (!string.IsNullOrEmpty(toUnit));
+            bool validNum = int.TryParse(inputNum, out int n);
+            bool positiveValue = true ? (TemperatureSection.ContainsKey(Singularize(fromUnit)) || n > 0) : false;
+
+            return (validNum && emptyCheck && wrongInputs && positiveValue);
+        }
+        private (bool valid, Dictionary<string, string> UsedSection) GenericCheckInputs(string inputNum, string fromUnit, string toUnit)
         {
             Dictionary<string, string?> usedSection = null;
             bool wrongInputs = true;

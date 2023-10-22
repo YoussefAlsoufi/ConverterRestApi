@@ -7,62 +7,61 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ConverterRestApi.Data;
 using ConverterRestApi.Model;
-using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 
 namespace ConverterRestApi.Controllers
 {
     [Route("api/[controller]")]
-    public class TemperatureConvertersController : ControllerBase
+    public class DataConverterController : ControllerBase
     {
         private readonly ConverterRestApiContext _context;
         private readonly ConveterTools _converter;
 
-        public TemperatureConvertersController(ConverterRestApiContext context, ConveterTools converter)
+        public DataConverterController(ConverterRestApiContext context, ConveterTools converter)
         {
             _context = context;
             _converter = converter;
         }
 
-        // GET: api/TemperatureConverters
+        // GET: api/DataConverter
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TemperatureConverter>>> GetTemperatureUnits()
+        public async Task<ActionResult<IEnumerable<DataConverter>>> GetDataUnits()
         {
-          if (_context.TemperatureUnits == null)
+          if (_context.DataUnits == null)
           {
               return NotFound();
           }
-            return await _context.TemperatureUnits.ToListAsync();
+            return await _context.DataUnits.ToListAsync();
         }
 
-        // GET: api/TemperatureConverters/5
+        // GET: api/DataConverter/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TemperatureConverter>> GetTemperatureConverter(string id)
+        public async Task<ActionResult<DataConverter>> GetDataConverter(string id)
         {
-          if (_context.TemperatureUnits == null)
+          if (_context.DataUnits == null)
           {
               return NotFound();
           }
-            var temperatureConverter = await _context.TemperatureUnits.FindAsync(id);
+            var dataConverter = await _context.DataUnits.FindAsync(id);
 
-            if (temperatureConverter == null)
+            if (dataConverter == null)
             {
                 return NotFound();
             }
 
-            return temperatureConverter;
+            return dataConverter;
         }
 
-        // PUT: api/TemperatureConverters/5
+        // PUT: api/DataConverter/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTemperatureConverter(string id, TemperatureConverter temperatureConverter)
+        public async Task<IActionResult> PutDataConverter(string id, DataConverter dataConverter)
         {
-            if (id != temperatureConverter.UnitName)
+            if (id != dataConverter.UnitName)
             {
                 return BadRequest();
             }
 
-            _context.Entry(temperatureConverter).State = EntityState.Modified;
+            _context.Entry(dataConverter).State = EntityState.Modified;
 
             try
             {
@@ -70,7 +69,7 @@ namespace ConverterRestApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TemperatureConverterExists(id))
+                if (!DataConverterExists(id))
                 {
                     return NotFound();
                 }
@@ -83,12 +82,12 @@ namespace ConverterRestApi.Controllers
             return NoContent();
         }
 
-        // POST: api/TemperatureConverters
+        // POST: api/DataConverter
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public IActionResult PostTemperatureConverter(Request req)
+        public IActionResult PostDataConverter(Request req)
         {
-            Response response = _converter.ConvertTemperature(req.Num, req.FromUnit, req.ToUnit);
+            Response response = _converter.ConvertData(req.Num, req.FromUnit, req.ToUnit);
             if (response.ResCode == 200)
             {
                 return Ok(response.ResMsg);
@@ -97,29 +96,29 @@ namespace ConverterRestApi.Controllers
                 return BadRequest(response.ResMsg);
         }
 
-        // DELETE: api/TemperatureConverters/5
+        // DELETE: api/DataConverter/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTemperatureConverter(string id)
+        public async Task<IActionResult> DeleteDataConverter(string id)
         {
-            if (_context.TemperatureUnits == null)
+            if (_context.DataUnits == null)
             {
                 return NotFound();
             }
-            var temperatureConverter = await _context.TemperatureUnits.FindAsync(id);
-            if (temperatureConverter == null)
+            var dataConverter = await _context.DataUnits.FindAsync(id);
+            if (dataConverter == null)
             {
                 return NotFound();
             }
 
-            _context.TemperatureUnits.Remove(temperatureConverter);
+            _context.DataUnits.Remove(dataConverter);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool TemperatureConverterExists(string id)
+        private bool DataConverterExists(string id)
         {
-            return (_context.TemperatureUnits?.Any(e => e.UnitName == id)).GetValueOrDefault();
+            return (_context.DataUnits?.Any(e => e.UnitName == id)).GetValueOrDefault();
         }
     }
 }
