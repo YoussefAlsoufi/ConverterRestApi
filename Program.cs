@@ -14,7 +14,7 @@ var dbContext = builder.Services.BuildServiceProvider().GetService<ConverterRest
 builder.Services.AddScoped<DataAccess>();
 builder.Services.AddScoped<ConveterTools>();
 //var te = dbContext?.DataUnits;
-//DataAccess n = new(dbContext); 
+//DataAccess n = new(dbContext);
 
 //ConveterTools tool = new( n);
 //tool.DoConvert("1","kilometer", "meter");

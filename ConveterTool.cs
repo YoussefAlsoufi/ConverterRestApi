@@ -71,17 +71,16 @@ namespace ConverterRestApi
             Dictionary<string, string?> usedSection = null;
             bool wrongInputs = true;
 
-            if (LengthSection.ContainsKey(Singularize(fromUnit)))
+            if (LengthSection.ContainsKey(Singularize(fromUnit)) && LengthSection.ContainsKey(Singularize(toUnit)))
             {
-                //usedSection = LengthSection;
                 usedSection = LengthSection;
 
             }
-            else if (DataTypeSection.ContainsKey(Singularize(fromUnit)))
+            else if (DataTypeSection.ContainsKey(Singularize(fromUnit)) && DataTypeSection.ContainsKey(Singularize(toUnit)))
             {
                 usedSection = DataTypeSection;
             }
-            else if (TemperatureSection.ContainsKey(Singularize(fromUnit)))
+            else if (TemperatureSection.ContainsKey(Singularize(fromUnit)) && TemperatureSection.ContainsKey(Singularize(toUnit)))
             {
                 usedSection = TemperatureSection;
             }
@@ -92,7 +91,6 @@ namespace ConverterRestApi
 
             bool emptyCheck = (!string.IsNullOrEmpty(inputNum)) && (!string.IsNullOrEmpty(fromUnit)) && (!string.IsNullOrEmpty(toUnit));
             bool validNum = int.TryParse(inputNum, out int n);
-            bool validInput = usedSection.ContainsKey(Singularize(fromUnit)) && usedSection.ContainsKey(Singularize(toUnit));
             bool positiveValue = true ? (TemperatureSection.ContainsKey(Singularize(fromUnit)) || n > 0) : false;
 
             return (validNum && emptyCheck && wrongInputs && positiveValue, usedSection);
