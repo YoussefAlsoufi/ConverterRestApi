@@ -31,7 +31,7 @@ namespace ConverterRestApi
             Response response = new();
             double result;
             string resultMessage;
-            var checkStatus = GenericCheckInputs1(num, fromUnit, toUnit, DataTypeSection);
+            var checkStatus = GenericCheckInputs(num, fromUnit, toUnit, DataTypeSection);
             if (checkStatus)
             {
                 double inputValue = Convert.ToDouble(num);
@@ -59,7 +59,7 @@ namespace ConverterRestApi
             Response response = new();
             double result;
             string resultMessage;
-            var checkStatus = GenericCheckInputs1(num, fromUnit, toUnit, LengthSection);
+            var checkStatus = GenericCheckInputs(num, fromUnit, toUnit, LengthSection);
             if (checkStatus)
             {
                 double inputValue = Convert.ToDouble(num);
@@ -87,13 +87,13 @@ namespace ConverterRestApi
             Response response = new();
             double result;
             string resultMessage;
-            var checkStatus = GenericCheckInputs1(num, fromUnit, toUnit, TemperatureSection);
+            var checkStatus = GenericCheckInputs(num, fromUnit, toUnit, TemperatureSection);
             if (checkStatus)
             {
                 double inputValue = Convert.ToDouble(num);
                 result = TempConvert(inputValue, Singularize(fromUnit), Singularize(toUnit));
 
-                resultMessage = $"( {num} {fromUnit},  {toUnit}) -> {result.ToString()}";
+                resultMessage = $"( {num} {fromUnit},  {toUnit}) -> {result}";
                 response.ResMsg = resultMessage;
                 response.ResCode = 200;
                 return response;
@@ -107,7 +107,7 @@ namespace ConverterRestApi
                 return response;
             }
         }
-        private bool GenericCheckInputs1(string inputNum, string fromUnit, string toUnit, Dictionary<string, string> usedSection)
+        private bool GenericCheckInputs(string inputNum, string fromUnit, string toUnit, Dictionary<string, string> usedSection)
         {
             bool wrongInputs = true;
 
@@ -121,35 +121,6 @@ namespace ConverterRestApi
             bool positiveValue = true ? (TemperatureSection.ContainsKey(Singularize(fromUnit)) || n > 0) : false;
 
             return (validNum && emptyCheck && wrongInputs && positiveValue);
-        }
-        private (bool valid, Dictionary<string, string> UsedSection) GenericCheckInputs(string inputNum, string fromUnit, string toUnit)
-        {
-            Dictionary<string, string?> usedSection = null;
-            bool wrongInputs = true;
-
-            if (LengthSection.ContainsKey(Singularize(fromUnit)) && LengthSection.ContainsKey(Singularize(toUnit)))
-            {
-                usedSection = LengthSection;
-
-            }
-            else if (DataTypeSection.ContainsKey(Singularize(fromUnit)) && DataTypeSection.ContainsKey(Singularize(toUnit)))
-            {
-                usedSection = DataTypeSection;
-            }
-            else if (TemperatureSection.ContainsKey(Singularize(fromUnit)) && TemperatureSection.ContainsKey(Singularize(toUnit)))
-            {
-                usedSection = TemperatureSection;
-            }
-            else
-            {
-                wrongInputs = false;
-            }
-
-            bool emptyCheck = (!string.IsNullOrEmpty(inputNum)) && (!string.IsNullOrEmpty(fromUnit)) && (!string.IsNullOrEmpty(toUnit));
-            bool validNum = int.TryParse(inputNum, out int n);
-            bool positiveValue = true ? (TemperatureSection.ContainsKey(Singularize(fromUnit)) || n > 0) : false;
-
-            return (validNum && emptyCheck && wrongInputs && positiveValue, usedSection);
         }
 
         private static double TempConvert(double tempInput, string fromTempUnit, string toTempUnit)
