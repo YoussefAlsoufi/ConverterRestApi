@@ -4,13 +4,18 @@ using ConverterRestApi.Data;
 using System.Drawing.Text;
 using ConverterRestApi;
 using Microsoft.AspNetCore.Builder;
+using Autofac.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ConverterRestApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ConverterRestApiContext") ?? throw new InvalidOperationException("Connection string 'ConverterRestApiContext' not found.")));
 
-
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 var dbContext = builder.Services.BuildServiceProvider().GetService<ConveterTools>();
+
+var startup = new Startup(builder.Configuration);
+startup.ConfigureServices(builder.Services);
 
 //var origins = new List<string>();
 //if (dbContext != null)
@@ -22,7 +27,6 @@ var dbContext = builder.Services.BuildServiceProvider().GetService<ConveterTools
 //        origins.Add(item.OriginName));
 //    }
 //}
-
 
 builder.Services.AddScoped<DataAccess>();
 builder.Services.AddScoped<ConveterTools>();
@@ -52,7 +56,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -17,5 +17,6 @@ namespace ConverterRestApi.Data
         public DbSet<DataConverter> DataUnits { get; set; } = default!;
         public DbSet<LengthConverter> LengthUnits { get; set; } = default!;
         public DbSet<TemperatureConverter> TemperatureUnits { get; set; } = default!;
+        public DbSet<CredentialsParameters> Credentials { get; set; } = default!;
     }
 }
