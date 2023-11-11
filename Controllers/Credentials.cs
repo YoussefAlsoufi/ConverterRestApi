@@ -13,6 +13,9 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using ConverterRestApi.Migrations;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace ConverterRestApi.Controllers
 {
@@ -22,43 +25,57 @@ namespace ConverterRestApi.Controllers
     {
         private readonly ConverterRestApiContext _context;
         private readonly JwtSettings credentials;
-        public Credentials (ConverterRestApiContext context, IOptions<JwtSettings> option)
+        private readonly IConfiguration _configuration;
+        public Credentials (ConverterRestApiContext context, IOptions<JwtSettings> option, IConfiguration configuration)
         {
+            _configuration = configuration;
             _context = context;
-            credentials = option.Value; // here using IOPtions interface has an advantage: Instead it was posible to use directly JWTSettings _jwtSettings and then
+            credentials = option.Value; // here using IOPtions interface has an advantage: Instead it was possible to use directly JWTSettings _jwtSettings and then
                                         // _jwtSettings.SecretKey , When you directly inject MySettings without using IOptions<T>, the settings are bound and resolved at the time the Credentials class instance is created.
                                         // This means that any changes made to the configuration during the application's runtime won't be reflected in the MyClass instance, as it holds the initial values.However,
                                         // when using IOptions<T>, the configuration settings are accessed via the IOptions < T > interface. The settings can be refreshed and updated during runtime without needing to recreate the Credentials instance.
                                         // This provides a more dynamic approach to configuration changes and allows for runtime updates without restarting the application.
         }
-       
-        [Route("Authenticate")]
-        [HttpPost]
-        public IActionResult Authenticate([FromBody] CredentialsParameters userCred)
+
+
+
+        [HttpPost("Login")]
+        [AllowAnonymous]
+        public IActionResult CheckLogin([FromBody] CredentialsParameters userCred)
         {
-            var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName && i.Password == userCred.Password);
+            var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName || i.Email == userCred.UserName || i.Phone == userCred.UserName 
+            && i.Password == userCred.Password);
             if (creds == null)
             {
                 return Unauthorized();
             }
             // generate a token:
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenKey = Encoding.UTF8.GetBytes(credentials.SecretKey);
-            var tokenDescriptor = new SecurityTokenDescriptor
+            else
             {
-                Subject = new System.Security.Claims.ClaimsIdentity(
-                    new Claim[]
-                    {
-                        new Claim(ClaimTypes.Name, creds.UserName),
-                    }),
-                Expires= DateTime.Now.AddMinutes(2),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            string finalToken= tokenHandler.WriteToken(token);
+                var authKey = _configuration.GetValue<string>("JWTSettings:SecretKey");
+                var audience = _configuration.GetValue<string>("JWTSettings:Audience");
+                var issuer = _configuration.GetValue<string>("JWTSettings:Issuer");
+                var subject = _configuration.GetValue<string>("JWTSettings:Subject");
+                var claims = new[]
+{
+                            new Claim(JwtRegisteredClaimNames.Sub,subject),
+                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                            new Claim(JwtRegisteredClaimNames.Iat,  DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+                            new Claim("UserName" , userCred.UserName)
+                        };
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey));
+                var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                var token = new JwtSecurityToken(
+                    audience,
+                    issuer,
+                    claims,
+                    expires: DateTime.UtcNow.AddMinutes(10), signingCredentials: signIn);
+                var UserToken = new JwtSecurityTokenHandler().WriteToken(token);
+                return Ok(UserToken);
 
-            return Ok(finalToken);
+
+            }
         }
-        
+
     }
 }
