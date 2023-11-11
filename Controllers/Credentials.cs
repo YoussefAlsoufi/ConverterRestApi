@@ -37,11 +37,36 @@ namespace ConverterRestApi.Controllers
                                         // This provides a more dynamic approach to configuration changes and allows for runtime updates without restarting the application.
         }
 
+        [HttpPost("SignUp")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SignUp([FromBody] CredentialsParameters userCred)
+        {
+            var creds = new CredentialsParameters
+            {
+                UserName = userCred.UserName,
+                Password = userCred.Password,
+                Email = userCred.Email,
+                Phone = userCred.Phone,
+            };
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            else
+            {
+                _context.Credentials.Add(creds);
+                await _context.SaveChangesAsync();
+
+                return Ok("SignUp done");
+
+            }
+
+        }
 
         [HttpPost("Login")]
         [AllowAnonymous]
-        public IActionResult CheckLogin([FromBody] CredentialsParameters userCred)
+        public IActionResult CheckLogin([FromBody] LoginParameters userCred)
         {
             var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName || i.Email == userCred.UserName || i.Phone == userCred.UserName 
             && i.Password == userCred.Password);
