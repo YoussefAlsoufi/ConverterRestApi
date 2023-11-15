@@ -26,6 +26,10 @@ namespace ConverterRestApi.Model
         /// </summary>
         [Required(ErrorMessage = "filling this field is mandatory!")]
         public string Phone { get; set; } = string.Empty;
+        /// <summary>
+        /// Role Property.
+        /// </summary>
+        public string? Role { get; set; } = string.Empty;
 
     }
 }

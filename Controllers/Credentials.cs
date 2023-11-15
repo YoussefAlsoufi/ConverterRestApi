@@ -1,21 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ConverterRestApi.Helper;
 using Microsoft.AspNetCore.Mvc;
 using ConverterRestApi.Model;
 using ConverterRestApi.Data;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Options;
-using static Microsoft.AspNetCore.Razor.Language.TagHelperMetadata;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using System.Configuration;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using ConverterRestApi.Migrations;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace ConverterRestApi.Controllers
 {
@@ -26,6 +19,8 @@ namespace ConverterRestApi.Controllers
         private readonly ConverterRestApiContext _context;
         private readonly JwtSettings credentials;
         private readonly IConfiguration _configuration;
+        private readonly string Client = "user";
+        private readonly string Admin = "admin";
         public Credentials (ConverterRestApiContext context, IOptions<JwtSettings> option, IConfiguration configuration)
         {
             _configuration = configuration;
@@ -41,12 +36,14 @@ namespace ConverterRestApi.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignUp([FromBody] CredentialsParameters userCred)
         {
+            var encryptedPassword = EncryptCredentials.EncryptPassword(userCred.Password);
             var creds = new CredentialsParameters
             {
                 UserName = userCred.UserName,
-                Password = userCred.Password,
+                Password = encryptedPassword,
                 Email = userCred.Email,
                 Phone = userCred.Phone,
+                Role = userCred.Role == "string" ? Client: Admin
             };
 
             if (!ModelState.IsValid)
@@ -55,10 +52,33 @@ namespace ConverterRestApi.Controllers
             }
             else
             {
-                _context.Credentials.Add(creds);
-                await _context.SaveChangesAsync();
+                var existingUser = await _context.Credentials.FirstOrDefaultAsync(u => u.Email == userCred.Email && u.Phone == userCred.Phone);
+                if (existingUser == null)
+                {
+                    if (CheckInputsValidity.IsValidEmail(userCred.Email))
+                    {
+                        if (CheckInputsValidity.IsValidUserName(userCred.UserName))
+                        {
+                            _context.Credentials.Add(creds);
+                            await _context.SaveChangesAsync();
 
-                return Ok("SignUp done");
+                            return Ok("SignUp done");
+
+                        }
+                        else
+                        {
+                            return Ok("Enter a Valid UserName!");
+                        }
+                    }
+                    else
+                    {
+                        return Ok("Enter a Valid Email");
+                    }
+                }
+                else
+                {
+                    return Ok("The Email/Phone are already exist.");
+                }
 
             }
 
@@ -101,6 +121,7 @@ namespace ConverterRestApi.Controllers
 
             }
         }
+
 
     }
 }
