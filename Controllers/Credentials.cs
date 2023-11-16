@@ -39,9 +39,9 @@ namespace ConverterRestApi.Controllers
             var encryptedPassword = EncryptCredentials.EncryptPassword(userCred.Password);
             var creds = new CredentialsParameters
             {
-                UserName = userCred.UserName,
+                UserName = userCred.UserName.ToLower(),
                 Password = encryptedPassword,
-                Email = userCred.Email,
+                Email = userCred.Email.ToLower(),
                 Phone = userCred.Phone,
                 Role = userCred.Role == "string" ? Client: Admin
             };
@@ -52,28 +52,26 @@ namespace ConverterRestApi.Controllers
             }
             else
             {
-                var existingUser = await _context.Credentials.FirstOrDefaultAsync(u => u.Email == userCred.Email && u.Phone == userCred.Phone);
+                var existingUser = await _context.Credentials.FirstOrDefaultAsync(u => u.Email == userCred.Email.ToLower() && u.Phone == userCred.Phone.ToLower());
                 if (existingUser == null)
                 {
-                    if (CheckInputsValidity.IsValidEmail(userCred.Email))
-                    {
-                        if (CheckInputsValidity.IsValidUserName(userCred.UserName))
-                        {
-                            _context.Credentials.Add(creds);
-                            await _context.SaveChangesAsync();
-
-                            return Ok("SignUp done");
-
-                        }
-                        else
-                        {
-                            return Ok("Enter a Valid UserName!");
-                        }
-                    }
-                    else
+                    if (!CheckInputsValidity.IsValidEmail(userCred.Email))
                     {
                         return Ok("Enter a Valid Email");
+  
                     }
+                    if (!CheckInputsValidity.IsValidUserName(userCred.UserName))
+                    {
+                        return Ok("Enter a Valid UserName!");
+                    }
+                    if (!CheckInputsValidity.IsValidPhone(userCred.Phone))
+                    {
+                        return Ok("Enter a Valid Phone Number!");
+                    }
+                    _context.Credentials.Add(creds);
+                    await _context.SaveChangesAsync();
+
+                    return Ok("SignUp done");
                 }
                 else
                 {
@@ -88,7 +86,7 @@ namespace ConverterRestApi.Controllers
         [AllowAnonymous]
         public IActionResult CheckLogin([FromBody] LoginParameters userCred)
         {
-            var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName || i.Email == userCred.UserName || i.Phone == userCred.UserName 
+            var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName.ToLower() || i.Email == userCred.UserName.ToLower() || i.Phone == userCred.UserName.ToLower() 
             && i.Password == userCred.Password);
             if (creds == null)
             {

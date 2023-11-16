@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ConverterRestApi.Data;
 using ConverterRestApi.Model;
 using Microsoft.CodeAnalysis.RulesetToEditorconfig;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ConverterRestApi.Controllers
 {
@@ -53,7 +54,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // PUT: api/TemperatureConverters/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTemperatureConverter(string id, TemperatureConverter temperatureConverter)
         {
@@ -84,7 +85,6 @@ namespace ConverterRestApi.Controllers
         }
 
         // POST: api/TemperatureConverters
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public IActionResult PostTemperatureConverter(Request req)
         {
@@ -98,6 +98,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // DELETE: api/TemperatureConverters/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTemperatureConverter(string id)
         {

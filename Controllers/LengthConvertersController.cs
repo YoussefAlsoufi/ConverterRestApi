@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ConverterRestApi.Data;
 using ConverterRestApi.Model;
 using Microsoft.CodeAnalysis.RulesetToEditorconfig;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ConverterRestApi.Controllers
 {
@@ -53,7 +54,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // PUT: api/LengthConverters/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutLengthConverter(string id, LengthConverter lengthConverter)
         {
@@ -84,7 +85,6 @@ namespace ConverterRestApi.Controllers
         }
 
         // POST: api/LengthConverters
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public IActionResult PostLengthConverter(Request req)
         {
@@ -98,6 +98,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // DELETE: api/LengthConverters/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLengthConverter(string id)
         {

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ConverterRestApi.Data;
 using ConverterRestApi.Model;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ConverterRestApi.Controllers
 {
@@ -52,7 +53,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // PUT: api/DataConverter/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDataConverter(string id, DataConverter dataConverter)
         {
@@ -83,7 +84,6 @@ namespace ConverterRestApi.Controllers
         }
 
         // POST: api/DataConverter
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public IActionResult PostDataConverter(Request req)
         {
@@ -97,6 +97,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // DELETE: api/DataConverter/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDataConverter(string id)
         {
