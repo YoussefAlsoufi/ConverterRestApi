@@ -1,17 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using ConverterRestApi.Data;
-using System.Drawing.Text;
 using ConverterRestApi;
-using Microsoft.AspNetCore.Builder;
 using Autofac.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using ConverterRestApi.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Configuration;
 using System.Text;
-
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ConverterRestApiContext>(options =>
@@ -46,12 +41,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     {
         ValidateIssuer = true,
         ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
         ValidAudience = builder.Configuration["JWTSettings:Audience"],
         ValidIssuer = builder.Configuration["JWTSettings:Issuer"],
+        ClockSkew = TimeSpan.FromMinutes(5),
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey))
 
     };
 });
+
+
+
+
 
 builder.Services.AddCors(p => p.AddPolicy("CorsPolicy", build =>
 {
@@ -62,6 +64,38 @@ builder.Services.AddCors(p => p.AddPolicy("CorsPolicy", build =>
     // instead of using "*", we can read a set of origins from db as we did top with origins list. so we can put origins.ToArray() instead of "*".
 }));
 
+builder.Services.AddSwaggerGen(option =>
+{
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+    option.AddSecurityDefinition(
+        "Bearer",
+        new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Description = "Please enter a valid token",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            BearerFormat = "JWT",
+            Scheme = "Bearer"
+        }
+    );
+    option.AddSecurityRequirement(
+        new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] { }
+            }
+        }
+    );
+});
 
 var app = builder.Build();
 

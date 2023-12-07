@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using ConverterRestApi.Data;
 using ConverterRestApi.Model;
 using Microsoft.AspNetCore.Authorization;
+using System.Net.Http.Headers;
+using System.Net.Http;
 
 namespace ConverterRestApi.Controllers
 {
@@ -16,21 +18,20 @@ namespace ConverterRestApi.Controllers
     {
         private readonly ConverterRestApiContext _context;
         private readonly ConveterTools _converter;
-
         public DataConverterController(ConverterRestApiContext context, ConveterTools converter)
         {
             _context = context;
             _converter = converter;
         }
-
         // GET: api/DataConverter
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DataConverter>>> GetDataUnits()
         {
-          if (_context.DataUnits == null)
-          {
+
+        if (_context.DataUnits == null)
+            {
               return NotFound();
-          }
+            }
             return await _context.DataUnits.ToListAsync();
         }
 
@@ -85,6 +86,7 @@ namespace ConverterRestApi.Controllers
 
         // POST: api/DataConverter
         [HttpPost]
+        [Authorize]
         public IActionResult PostDataConverter(Request req)
         {
             Response response = _converter.ConvertData(req.Num, req.FromUnit, req.ToUnit);

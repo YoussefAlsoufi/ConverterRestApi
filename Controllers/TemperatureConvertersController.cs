@@ -86,6 +86,7 @@ namespace ConverterRestApi.Controllers
 
         // POST: api/TemperatureConverters
         [HttpPost]
+        [Authorize]
         public IActionResult PostTemperatureConverter(Request req)
         {
             Response response = _converter.ConvertTemperature(req.Num, req.FromUnit, req.ToUnit);

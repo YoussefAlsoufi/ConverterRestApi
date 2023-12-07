@@ -16,6 +16,7 @@ namespace ConverterRestApi.Controllers
     [Route("api/[controller]")]
     public class Credentials : ControllerBase
     {
+        public static string userToken;
         private readonly ConverterRestApiContext _context;
         private readonly JwtSettings credentials;
         private readonly IConfiguration _configuration;
@@ -99,22 +100,57 @@ namespace ConverterRestApi.Controllers
                 var audience = _configuration.GetValue<string>("JWTSettings:Audience");
                 var issuer = _configuration.GetValue<string>("JWTSettings:Issuer");
                 var subject = _configuration.GetValue<string>("JWTSettings:Subject");
-                var claims = new[]
-{
-                            new Claim(JwtRegisteredClaimNames.Sub,subject),
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                            new Claim(JwtRegisteredClaimNames.Iat,  DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-                            new Claim("UserName" , userCred.UserName)
-                        };
+
+                var claims = new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, subject),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+                    new Claim("UserName", userCred.UserName)
+                };
+
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey));
                 var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
                 var token = new JwtSecurityToken(
-                    audience,
                     issuer,
+                    audience,
                     claims,
-                    expires: DateTime.UtcNow.AddMinutes(10), signingCredentials: signIn);
-                var UserToken = new JwtSecurityTokenHandler().WriteToken(token);
-                return Ok(UserToken);
+                    expires: DateTime.UtcNow.AddHours(20),
+                    signingCredentials: signIn
+                );
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                userToken = tokenHandler.WriteToken(token);
+
+                var tokenParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidAudience = _configuration["JWTSettings:Audience"],
+                    ValidIssuer = _configuration["JWTSettings:Issuer"],
+                    ClockSkew = TimeSpan.FromMinutes(5),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey))
+
+                };
+                try
+                {
+                    var principal = new JwtSecurityTokenHandler().ValidateToken(userToken, tokenParameters, out _);
+                    // Token is valid
+                    Console.WriteLine("Valid");
+                    return Ok(userToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Invalid");
+                    // Invalid token
+                    return BadRequest("InValid Token");
+                }
+
+
+                //return Ok(userToken);
 
 
             }

@@ -86,6 +86,7 @@ namespace ConverterRestApi.Controllers
 
         // POST: api/LengthConverters
         [HttpPost]
+        [Authorize]
         public IActionResult PostLengthConverter(Request req)
         {
             Response response = _converter.ConvertLength(req.Num, req.FromUnit, req.ToUnit);
