@@ -32,6 +32,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//use Interfaces:
+builder.Services.AddSingleton<IRefreshToken>(provider => new RefreshTokenGenerator());
+
+
 var authKey = configuration.GetValue<string>("JWTSettings:SecretKey");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(item =>
 {

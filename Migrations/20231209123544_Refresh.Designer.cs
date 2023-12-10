@@ -3,6 +3,7 @@ using ConverterRestApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ConverterRestApi.Migrations
 {
     [DbContext(typeof(ConverterRestApiContext))]
-    partial class ConverterRestApiContextModelSnapshot : ModelSnapshot
+    [Migration("20231209123544_Refresh")]
+    partial class Refresh
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,27 +72,6 @@ namespace ConverterRestApi.Migrations
                     b.HasKey("UnitName");
 
                     b.ToTable("LengthUnits");
-                });
-
-            modelBuilder.Entity("ConverterRestApi.Model.RefreshTokenParameters", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("RefreshToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TokenId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("UserId");
-
-                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("ConverterRestApi.Model.TemperatureConverter", b =>

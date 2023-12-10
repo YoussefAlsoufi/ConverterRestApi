@@ -10,7 +10,7 @@ namespace ConverterRestApi.Model
         /// </summary>
         [Key]
         [Required(ErrorMessage = "filling this field is mandatory!")]
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
         /// <summary>
         /// Password Property.
         /// </summary>
