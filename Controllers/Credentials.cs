@@ -40,6 +40,24 @@ namespace ConverterRestApi.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SignUp([FromBody] CredentialsParameters userCred)
         {
+            if (userCred.Email.Equals("string") || !CheckInputsValidity.IsValidEmail(userCred.Email))
+            {
+                return Ok("Enter a Valid Email");
+
+            }
+            if (userCred.UserName.Equals("string") || !CheckInputsValidity.IsValidUserName(userCred.UserName))
+            {
+                return Ok("Enter a Valid UserName!");
+            }
+            if (userCred.Phone.Equals("string") || !CheckInputsValidity.IsValidPhone(userCred.Phone))
+            {
+                return Ok("Enter a Valid Phone Number!");
+            }
+            if (userCred.Password.Equals("string") || !CheckInputsValidity.IsValidPassword(userCred.Password))
+            {
+                return Ok("Password should contains  Upper,Lower,Digits,characters.");
+            }
+
             var encryptedPassword = EncryptCredentials.EncryptPassword(userCred.Password);
             var creds = new CredentialsParameters
             {
@@ -59,19 +77,6 @@ namespace ConverterRestApi.Controllers
                 var existingUser = await _context.Credentials.FirstOrDefaultAsync(u => u.Email == userCred.Email.ToLower() && u.Phone == userCred.Phone.ToLower());
                 if (existingUser == null)
                 {
-                    if (!CheckInputsValidity.IsValidEmail(userCred.Email))
-                    {
-                        return Ok("Enter a Valid Email");
-  
-                    }
-                    if (!CheckInputsValidity.IsValidUserName(userCred.UserName))
-                    {
-                        return Ok("Enter a Valid UserName!");
-                    }
-                    if (!CheckInputsValidity.IsValidPhone(userCred.Phone))
-                    {
-                        return Ok("Enter a Valid Phone Number!");
-                    }
                     _context.Credentials.Add(creds);
                     await _context.SaveChangesAsync();
 
@@ -186,11 +191,11 @@ namespace ConverterRestApi.Controllers
 
             }
         }
-        public bool IsRefreshTokenExpired(DateTime expirationTime)
-        {
-            // Compare the current time with the expiration time
-            return DateTime.UtcNow >= expirationTime;
-        }
+        //public bool IsRefreshTokenExpired(DateTime expirationTime)
+        //{
+        //    // Compare the current time with the expiration time
+        //    return DateTime.UtcNow >= expirationTime;
+        //}
 
 
     }

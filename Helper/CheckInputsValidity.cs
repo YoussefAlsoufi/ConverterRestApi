@@ -23,5 +23,5 @@ namespace ConverterRestApi.Helper
             return Regex.IsMatch(phoneNumber,pattern);
         }
 
-    }
+    } 
 }
