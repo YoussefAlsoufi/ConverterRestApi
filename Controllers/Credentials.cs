@@ -2,15 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using ConverterRestApi.Model;
 using ConverterRestApi.Data;
-using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using ConverterRestApi.Migrations;
-using Microsoft.AspNetCore.Authentication.OAuth;
+using ConverterRestApi.TokenHelper;
 
 namespace ConverterRestApi.Controllers
 {
@@ -18,14 +13,11 @@ namespace ConverterRestApi.Controllers
     [Route("api/[controller]")]
     public class Credentials : ControllerBase
     {
-        public static string? userToken;
         private readonly ConverterRestApiContext _context;
-        //private readonly JwtSettings credentials;
         private readonly IConfiguration _configuration;
         private readonly string Client = "user";
         private readonly string Admin = "admin";
-        private IRefreshToken refreshTokenGenerator = new RefreshTokenGenerator();
-        public Credentials (ConverterRestApiContext context, IOptions<JwtSettings> option, IConfiguration configuration)
+        public Credentials (ConverterRestApiContext context, IConfiguration configuration)
         {
             _configuration = configuration;
             _context = context;
@@ -96,83 +88,23 @@ namespace ConverterRestApi.Controllers
         public IActionResult CheckLogin([FromBody] LoginParameters userCred)
         {
             ResponseToken responseToken = new();
+            AccessTokenHelper accessToken = new(_configuration);
             var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName.ToLower() || i.Email == userCred.UserName.ToLower() || i.Phone == userCred.UserName.ToLower() 
             && i.Password == EncryptCredentials.EncryptPassword(userCred.Password));
             if (creds == null)
             {
                 return Unauthorized();
             }
-            // generate a token:
             else
             {
-                var authKey = _configuration.GetValue<string>("JWTSettings:SecretKey");
-                var audience = _configuration.GetValue<string>("JWTSettings:Audience");
-                var issuer = _configuration.GetValue<string>("JWTSettings:Issuer");
-                var subject = _configuration.GetValue<string>("JWTSettings:Subject");
+                // Generate Access Token:
+                var (tokenParameters, jwtToken)= accessToken.GenerateAccesstoken(userCred);
+                responseToken.JwtToken = jwtToken;
 
-                var claims = new List<Claim>
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, subject),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-                    new Claim("UserName", userCred.UserName)
-                };
-
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey));
-                var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-                var token = new JwtSecurityToken(
-                    issuer,
-                    audience,
-                    claims,
-                    expires: DateTime.UtcNow.AddMinutes(2),
-                    signingCredentials: signIn
-                );
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-                responseToken.JwtToken = tokenHandler.WriteToken(token);
-
-                var tokenParameters = new TokenValidationParameters()
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidAudience = _configuration["JWTSettings:Audience"],
-                    ValidIssuer = _configuration["JWTSettings:Issuer"],
-                    ClockSkew = TimeSpan.FromMinutes(1),
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey))
-
-                };
                 // Generate a Refresh Token:
-                (responseToken.RefreshToken, var expiredTime) = refreshTokenGenerator.GenerateToken();
-                var users = _context.RefreshToken.FirstOrDefault(cred => cred.UserId == creds.UserName);
-                if (users != null)
-                {
-                    users.RefreshToken= responseToken.RefreshToken;
-                    users.ExpirationTime = expiredTime;
-                    _context.SaveChanges();
-                }
-                else
-                {
-                    var newRefreshToken = new RefreshTokenParameters()
-                    {
-                        UserId = userCred.UserName.ToLower(),
-                        Password = userCred.Password.ToLower(),
-                        Phone = creds.Phone,
-                        Email = creds.Email.ToLower(),
-                        TokenId = new Random().Next().ToString(),
-                        RefreshToken = responseToken.RefreshToken,
-                        IsActive = true,
-                        ExpirationTime = expiredTime
-                        
-                    };
-                    _context.RefreshToken.Add(newRefreshToken);
-                    _context.SaveChanges();
-                }
+                IRefreshToken refreshTokenGenerator = new RefreshTokenHelper(_context);
+                responseToken.RefreshToken = refreshTokenGenerator.RefreshTokenGenerator(creds, userCred);
 
-                
-                
                 try
                 {
 

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using ConverterRestApi.TokenHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ConverterRestApiContext>(options =>
@@ -33,7 +34,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //use Interfaces:
-builder.Services.AddSingleton<IRefreshToken>(provider => new RefreshTokenGenerator());
+builder.Services.AddSingleton<IRefreshToken>(provider => new RefreshTokenHelper());
 
 
 var authKey = configuration.GetValue<string>("JWTSettings:SecretKey");
@@ -49,7 +50,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateIssuerSigningKey = true,
         ValidAudience = builder.Configuration["JWTSettings:Audience"],
         ValidIssuer = builder.Configuration["JWTSettings:Issuer"],
-        ClockSkew = TimeSpan.FromMinutes(5),
+        ClockSkew = TimeSpan.FromMinutes(1),
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey))
 
     };
