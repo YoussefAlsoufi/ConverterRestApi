@@ -53,7 +53,7 @@ namespace ConverterRestApi.Controllers
             {
                 return Ok("Enter a Valid Phone Number!");
             }
-            if (userCred.Password.Equals("string") || !CheckInputsValidity.IsValidPassword(userCred.Password))
+            if (userCred.Password.Equals("string") || !CheckInputsValidity.IsPasswordValid(userCred.Password))
             {
                 return Ok("Password should contains  Upper,Lower,Digits,characters.");
             }
@@ -95,9 +95,9 @@ namespace ConverterRestApi.Controllers
         [AllowAnonymous]
         public IActionResult CheckLogin([FromBody] LoginParameters userCred)
         {
-            ResponseToken responseToken = new ResponseToken();
+            ResponseToken responseToken = new();
             var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName.ToLower() || i.Email == userCred.UserName.ToLower() || i.Phone == userCred.UserName.ToLower() 
-            && i.Password == userCred.Password);
+            && i.Password == EncryptCredentials.EncryptPassword(userCred.Password));
             if (creds == null)
             {
                 return Unauthorized();

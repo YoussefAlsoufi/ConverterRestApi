@@ -22,11 +22,6 @@ namespace ConverterRestApi.Helper
             string pattern = @"^\d{3}\d{3}\d{4}$";
             return Regex.IsMatch(phoneNumber,pattern);
         }
-        public static bool IsValidPassword(string phoneNumber)
-        {
-            string pattern = @"^\d{3}\d{3}\d{4}$";
-            return Regex.IsMatch(phoneNumber, pattern);
-        }
         public static bool IsPasswordValid(string password)
         {
             // Check if the password is null or empty
