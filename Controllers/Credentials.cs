@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using ConverterRestApi.TokenHelper;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 
 namespace ConverterRestApi.Controllers
 {
@@ -15,12 +17,15 @@ namespace ConverterRestApi.Controllers
     {
         private readonly ConverterRestApiContext _context;
         private readonly IConfiguration _configuration;
+        private readonly JwtSettings _jwtSettings;
         private readonly string Client = "user";
         private readonly string Admin = "admin";
-        public Credentials (ConverterRestApiContext context, IConfiguration configuration)
+        public Credentials (ConverterRestApiContext context, IConfiguration configuration, IOptions<JwtSettings> jwtSettings)
         {
             _configuration = configuration;
+            _jwtSettings = jwtSettings.Value;
             _context = context;
+
             //credentials = option.Value; // here using IOPtions interface has an advantage: Instead it was possible to use directly JWTSettings _jwtSettings and then
                                         // _jwtSettings.SecretKey , When you directly inject MySettings without using IOptions<T>, the settings are bound and resolved at the time the Credentials class instance is created.
                                         // This means that any changes made to the configuration during the application's runtime won't be reflected in the MyClass instance, as it holds the initial values.However,
@@ -87,8 +92,10 @@ namespace ConverterRestApi.Controllers
         [AllowAnonymous]
         public IActionResult CheckLogin([FromBody] LoginParameters userCred)
         {
+            TokenValidationParameters tokenValidationParameters = new();
+            string jwtToken;
             ResponseToken responseToken = new();
-            AccessTokenHelper accessToken = new(_configuration);
+            AccessTokenHelper accessToken = new AccessTokenHelper(_configuration);
             var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName.ToLower() || i.Email == userCred.UserName.ToLower() || i.Phone == userCred.UserName.ToLower() 
             && i.Password == EncryptCredentials.EncryptPassword(userCred.Password));
             if (creds == null)
@@ -98,17 +105,24 @@ namespace ConverterRestApi.Controllers
             else
             {
                 // Generate Access Token:
-                var (tokenParameters, jwtToken)= accessToken.GenerateAccesstoken(userCred);
-                responseToken.JwtToken = jwtToken;
+                if (creds.Role == "admin")
+                {
+                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccesstoken(userCred, 43200);
+                }
+                else
+                {
+                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccesstoken(userCred, 1);
+                    responseToken.JwtToken = jwtToken;
 
-                // Generate a Refresh Token:
-                IRefreshToken refreshTokenGenerator = new RefreshTokenHelper(_context);
-                responseToken.RefreshToken = refreshTokenGenerator.RefreshTokenGenerator(creds, userCred);
+                    // Generate a Refresh Token:
+                    IRefreshToken refreshTokenGenerator = new RefreshTokenHelper(_context);
+                    responseToken.RefreshToken = refreshTokenGenerator.RefreshTokenGenerator(creds, userCred);
+                }
 
                 try
                 {
-
-                    var principal = new JwtSecurityTokenHandler().ValidateToken(responseToken.JwtToken, tokenParameters, out _);
+                    AccessTokenValidity.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters);
+                    //var principal =  AccessTokenValidity.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters);
                     // Token is valid
                     Console.WriteLine("Valid");
                     return Ok(responseToken);

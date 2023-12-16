@@ -1,4 +1,5 @@
 ﻿using ConverterRestApi.Model;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -9,12 +10,15 @@ namespace ConverterRestApi.TokenHelper
     public class AccessTokenHelper
     {
         private readonly IConfiguration _configuration;
+        private readonly JwtSettings _jwtSettings;
+
         public AccessTokenHelper(IConfiguration configuration) 
         {
             _configuration = configuration;
+            //_jwtSettings = jwtSettings.Value;
         }
 
-        public (TokenValidationParameters,string) GenerateAccesstoken(LoginParameters userCred)
+        public (TokenValidationParameters,string) GenerateAccesstoken(LoginParameters userCred, int ExpirationTime)
         {
             var authKey = _configuration.GetValue<string>("JWTSettings:SecretKey");
             var audience = _configuration.GetValue<string>("JWTSettings:Audience");
@@ -36,7 +40,7 @@ namespace ConverterRestApi.TokenHelper
                 issuer,
                 audience,
                 claims,
-                expires: DateTime.UtcNow.AddMinutes(2),
+                expires: DateTime.UtcNow.AddMinutes(ExpirationTime),
                 signingCredentials: signIn
             );
 
