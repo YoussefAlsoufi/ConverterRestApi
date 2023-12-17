@@ -106,11 +106,11 @@ namespace ConverterRestApi.Controllers
                 // Generate Access Token:
                 if (creds.Role == "admin")
                 {
-                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, 43200);
+                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, creds, 43200);
                 }
                 else
                 {
-                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, 1);
+                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, creds, 1);
                     responseToken.JwtToken = jwtToken;
 
                     // Generate a Refresh Token:
