@@ -17,20 +17,18 @@ namespace ConverterRestApi.Controllers
     {
         private readonly ConverterRestApiContext _context;
         private readonly IConfiguration _configuration;
-        private readonly JwtSettings _jwtSettings;
         private readonly string Client = "user";
         private readonly string Admin = "admin";
-        public Credentials (ConverterRestApiContext context, IConfiguration configuration, IOptions<JwtSettings> jwtSettings)
+        public Credentials(ConverterRestApiContext context, IConfiguration configuration)
         {
             _configuration = configuration;
-            _jwtSettings = jwtSettings.Value;
             _context = context;
 
             //credentials = option.Value; // here using IOPtions interface has an advantage: Instead it was possible to use directly JWTSettings _jwtSettings and then
-                                        // _jwtSettings.SecretKey , When you directly inject MySettings without using IOptions<T>, the settings are bound and resolved at the time the Credentials class instance is created.
-                                        // This means that any changes made to the configuration during the application's runtime won't be reflected in the MyClass instance, as it holds the initial values.However,
-                                        // when using IOptions<T>, the configuration settings are accessed via the IOptions < T > interface. The settings can be refreshed and updated during runtime without needing to recreate the Credentials instance.
-                                        // This provides a more dynamic approach to configuration changes and allows for runtime updates without restarting the application.
+            // _jwtSettings.SecretKey , When you directly inject MySettings without using IOptions<T>, the settings are bound and resolved at the time the Credentials class instance is created.
+            // This means that any changes made to the configuration during the application's runtime won't be reflected in the MyClass instance, as it holds the initial values.However,
+            // when using IOptions<T>, the configuration settings are accessed via the IOptions < T > interface. The settings can be refreshed and updated during runtime without needing to recreate the Credentials instance.
+            // This provides a more dynamic approach to configuration changes and allows for runtime updates without restarting the application.
         }
 
         [HttpPost("SignUp")]
@@ -62,7 +60,7 @@ namespace ConverterRestApi.Controllers
                 Password = encryptedPassword,
                 Email = userCred.Email.ToLower(),
                 Phone = userCred.Phone,
-                Role = userCred.Role == "string" ? Client: Admin
+                Role = userCred.Role == "string" ? Client : Admin
             };
 
             if (!ModelState.IsValid)
@@ -95,8 +93,8 @@ namespace ConverterRestApi.Controllers
             TokenValidationParameters tokenValidationParameters = new();
             string jwtToken;
             ResponseToken responseToken = new();
-            AccessTokenHelper accessToken = new AccessTokenHelper(_configuration);
-            var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName.ToLower() || i.Email == userCred.UserName.ToLower() || i.Phone == userCred.UserName.ToLower() 
+            AccessTokenHelper accessToken = new(_configuration);
+            var creds = _context.Credentials.FirstOrDefault(i => i.UserName == userCred.UserName.ToLower() || i.Email == userCred.UserName.ToLower() || i.Phone == userCred.UserName.ToLower()
             && i.Password == EncryptCredentials.EncryptPassword(userCred.Password));
             if (creds == null)
             {
@@ -107,11 +105,11 @@ namespace ConverterRestApi.Controllers
                 // Generate Access Token:
                 if (creds.Role == "admin")
                 {
-                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccesstoken(userCred, 43200);
+                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, 43200);
                 }
                 else
                 {
-                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccesstoken(userCred, 1);
+                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, 1);
                     responseToken.JwtToken = jwtToken;
 
                     // Generate a Refresh Token:
@@ -121,7 +119,7 @@ namespace ConverterRestApi.Controllers
 
                 try
                 {
-                    AccessTokenValidity.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters);
+                    accessToken.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters);
                     //var principal =  AccessTokenValidity.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters);
                     // Token is valid
                     Console.WriteLine("Valid");
@@ -129,7 +127,7 @@ namespace ConverterRestApi.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Invalid with Exception: {0}",ex);
+                    Console.WriteLine("Invalid with Exception: {0}", ex);
                     // Invalid token
                     return BadRequest("InValid Token");
                 }

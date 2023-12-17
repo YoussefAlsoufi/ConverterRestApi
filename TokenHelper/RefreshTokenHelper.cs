@@ -32,7 +32,7 @@ namespace ConverterRestApi.TokenHelper
         public string RefreshTokenGenerator(CredentialsParameters creds, LoginParameters userCred)
         {
             var (refreshToken, expiredTime) = GenerateToken();
-            
+
             var users = _context.RefreshToken.FirstOrDefault(cred => cred.UserId == creds.UserName);
             if (users != null)
             {

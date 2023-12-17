@@ -1,24 +1,24 @@
 ﻿using ConverterRestApi.Model;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
 namespace ConverterRestApi.TokenHelper
 {
-    public class AccessTokenHelper
+    public class AccessTokenHelper : IJwtTokenServices
     {
         private readonly IConfiguration _configuration;
-        private readonly JwtSettings _jwtSettings;
 
-        public AccessTokenHelper(IConfiguration configuration) 
+
+        public AccessTokenHelper(IConfiguration configuration)
         {
             _configuration = configuration;
-            //_jwtSettings = jwtSettings.Value;
         }
 
-        public (TokenValidationParameters,string) GenerateAccesstoken(LoginParameters userCred, int ExpirationTime)
+        public (TokenValidationParameters, string) GenerateAccessToken(LoginParameters userCred, int ExpirationTime)
         {
             var authKey = _configuration.GetValue<string>("JWTSettings:SecretKey");
             var audience = _configuration.GetValue<string>("JWTSettings:Audience");
@@ -47,6 +47,7 @@ namespace ConverterRestApi.TokenHelper
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.WriteToken(token);
 
+
             var tokenParameters = new TokenValidationParameters()
             {
                 ValidateIssuer = true,
@@ -61,6 +62,14 @@ namespace ConverterRestApi.TokenHelper
             };
 
             return (tokenParameters, jwtToken);
+
+        }
+
+        public bool ValidateAccessToken(string jwtToken, TokenValidationParameters tokenParameters)
+        {
+            var principal = new JwtSecurityTokenHandler().ValidateToken(jwtToken, tokenParameters, out _);
+
+            return true;
         }
     }
 }
