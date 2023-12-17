@@ -6,6 +6,6 @@ namespace ConverterRestApi.TokenHelper
     public interface IJwtTokenServices
     {
         (TokenValidationParameters, string) GenerateAccessToken(LoginParameters userCred, int ExpirationTime);
-        bool ValidateAccessToken(string jwtToken, TokenValidationParameters tokenParameters);
+        string ValidateAccessToken(string jwtToken, TokenValidationParameters tokenParameters, HttpContext httpContext);
     }
 }

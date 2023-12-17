@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using ConverterRestApi.TokenHelper;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
 
 namespace ConverterRestApi.Controllers
 {
@@ -119,7 +120,7 @@ namespace ConverterRestApi.Controllers
 
                 try
                 {
-                    accessToken.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters);
+                    accessToken.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters, HttpContext);
                     //var principal =  AccessTokenValidity.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters);
                     // Token is valid
                     Console.WriteLine("Valid");
