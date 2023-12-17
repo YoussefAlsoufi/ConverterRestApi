@@ -48,18 +48,7 @@ namespace ConverterRestApi.TokenHelper
             var jwtToken = tokenHandler.WriteToken(token);
 
 
-            var tokenParameters = new TokenValidationParameters()
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidAudience = _configuration["JWTSettings:Audience"],
-                ValidIssuer = _configuration["JWTSettings:Issuer"],
-                ClockSkew = TimeSpan.FromMinutes(1),
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey))
-
-            };
+            var tokenParameters = new TokenParameters(_configuration).GenerateTokenParameters(); 
 
             return (tokenParameters, jwtToken);
 
