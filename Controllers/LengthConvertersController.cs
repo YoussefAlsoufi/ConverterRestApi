@@ -54,7 +54,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // PUT: api/LengthConverters/5
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutLengthConverter(string id, LengthConverter lengthConverter)
         {
@@ -99,7 +99,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // DELETE: api/LengthConverters/5
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLengthConverter(string id)
         {
