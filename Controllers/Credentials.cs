@@ -107,11 +107,11 @@ namespace ConverterRestApi.Controllers
                 if (creds.Role == "admin")
                 {
                     (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, creds, 43200);
+
                 }
                 else
                 {
                     (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, creds, 1);
-                    responseToken.JwtToken = jwtToken;
 
                     // Generate a Refresh Token:
                     IRefreshToken refreshTokenGenerator = new RefreshTokenHelper(_context);
@@ -120,6 +120,7 @@ namespace ConverterRestApi.Controllers
 
                 try
                 {
+                    responseToken.JwtToken = jwtToken;
                     accessToken.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters, HttpContext);
                     //var principal =  AccessTokenValidity.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters);
                     // Token is valid

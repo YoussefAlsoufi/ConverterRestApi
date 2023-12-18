@@ -51,7 +51,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateIssuerSigningKey = true,
         ValidAudience = builder.Configuration["JWTSettings:Audience"],
         ValidIssuer = builder.Configuration["JWTSettings:Issuer"],
-        ClockSkew = TimeSpan.FromMinutes(1),
+        ClockSkew = TimeSpan.FromHours(2),
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey))
 
     };

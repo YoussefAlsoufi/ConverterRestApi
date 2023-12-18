@@ -54,7 +54,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // PUT: api/TemperatureConverters/5
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTemperatureConverter(string id, TemperatureConverter temperatureConverter)
         {
@@ -99,7 +99,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // DELETE: api/TemperatureConverters/5
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTemperatureConverter(string id)
         {

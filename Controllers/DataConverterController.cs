@@ -86,7 +86,8 @@ namespace ConverterRestApi.Controllers
 
         // POST: api/DataConverter
         [HttpPost]
-        [Authorize]
+        //[Authorize]
+        [Authorize(Roles = "admin")]
         public IActionResult PostDataConverter(Request req)
         {
 

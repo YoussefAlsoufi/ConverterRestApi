@@ -25,21 +25,7 @@ namespace ConverterRestApi.TokenHelper
             var audience = _configuration.GetValue<string>("JWTSettings:Audience");
             var issuer = _configuration.GetValue<string>("JWTSettings:Issuer");
             var subject = _configuration.GetValue<string>("JWTSettings:Subject");
-            if (creds.Role == "admin")
-            {
-                claims = new List<Claim>
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, subject),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-                    new Claim("UserName", userCred.UserName),
-                    new Claim(ClaimTypes.Role, "admin")
-                };
-
-            }
-            else
-            {
-                claims = new List<Claim>
+            claims = new List<Claim>
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, subject),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
@@ -47,9 +33,10 @@ namespace ConverterRestApi.TokenHelper
                     new Claim("UserName", userCred.UserName),
                     new Claim(ClaimTypes.Role, "user")
                 };
-
+            if (creds.Role == "admin")
+            {
+                claims.Add( new Claim(ClaimTypes.Role, "admin"));
             }
-
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey));
             var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
