@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using ConverterRestApi.TokenHelper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ConverterRestApi.Data;
 using ConverterRestApi.Model;
 using Microsoft.AspNetCore.Authorization;
-using System.Net.Http.Headers;
-using System.Net.Http;
+using System.Security.Claims;
+using ConverterRestApi.Migrations;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 
 namespace ConverterRestApi.Controllers
 {
@@ -18,17 +16,21 @@ namespace ConverterRestApi.Controllers
     {
         private readonly ConverterRestApiContext _context;
         private readonly ConveterTools _converter;
-        public DataConverterController(ConverterRestApiContext context, ConveterTools converter)
+        private readonly IConfiguration _configuration;
+
+        public DataConverterController(ConverterRestApiContext context, ConveterTools converter, IConfiguration configuration)
         {
             _context = context;
             _converter = converter;
+            _configuration = configuration;
         }
+
         // GET: api/DataConverter
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DataConverter>>> GetDataUnits()
         {
-
-        if (_context.DataUnits == null)
+            var userName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+            if (_context.DataUnits == null)
             {
               return NotFound();
             }
@@ -54,7 +56,7 @@ namespace ConverterRestApi.Controllers
         }
 
         // PUT: api/DataConverter/5
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDataConverter(string id, DataConverter dataConverter)
         {
@@ -86,12 +88,10 @@ namespace ConverterRestApi.Controllers
 
         // POST: api/DataConverter
         [HttpPost]
-        //[Authorize]
-        [Authorize(Roles = "admin")]
+        [Authorize]
         public IActionResult PostDataConverter(Request req)
         {
-
-
+            
             Response response = _converter.ConvertData(req.Num, req.FromUnit, req.ToUnit);
             if (response.ResCode == 200)
             {
@@ -99,10 +99,11 @@ namespace ConverterRestApi.Controllers
             }
             else
                 return BadRequest(response.ResMsg);
+
         }
 
         // DELETE: api/DataConverter/5
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDataConverter(string id)
         {

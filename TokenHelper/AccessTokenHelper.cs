@@ -1,5 +1,6 @@
 ﻿using ConverterRestApi.Migrations;
 using ConverterRestApi.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
@@ -12,31 +13,29 @@ namespace ConverterRestApi.TokenHelper
     public class AccessTokenHelper : IJwtTokenServices
     {
         private readonly IConfiguration _configuration;
-        private List<Claim> claims;
+        private List<Claim>? claims;
 
         public AccessTokenHelper(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        public (TokenValidationParameters, string) GenerateAccessToken(LoginParameters userCred, CredentialsParameters creds, int ExpirationTime)
+        public (TokenValidationParameters, string) GenerateAccessToken(CredentialsParameters creds, int ExpirationTime)
         {
             var authKey = _configuration.GetValue<string>("JWTSettings:SecretKey");
             var audience = _configuration.GetValue<string>("JWTSettings:Audience");
             var issuer = _configuration.GetValue<string>("JWTSettings:Issuer");
             var subject = _configuration.GetValue<string>("JWTSettings:Subject");
             claims = new List<Claim>
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, subject),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-                    new Claim("UserName", userCred.UserName),
-                    new Claim(ClaimTypes.Role, "user")
-                };
-            if (creds.Role == "admin")
             {
-                claims.Add( new Claim(ClaimTypes.Role, "admin"));
-            }
+                new Claim(JwtRegisteredClaimNames.Sub, subject),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+                new Claim(ClaimTypes.Name, creds.UserName),
+                new Claim(ClaimTypes.Email, creds.Email),
+                new Claim(ClaimTypes.MobilePhone, creds.Phone),
+                new Claim(ClaimTypes.Role, creds.Role)
+            };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey));
             var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -59,29 +58,44 @@ namespace ConverterRestApi.TokenHelper
 
         }
 
-        public string ValidateAccessToken(string jwtToken, TokenValidationParameters tokenParameters, HttpContext httpContext)
-        {
-            string authorizationHeader = httpContext.Request.Headers["Authorization"];
+        //public bool ValidateAccessToken(TokenValidationParameters tokenParameters, HttpContext httpContext)
+        //{
 
-            if (string.IsNullOrWhiteSpace(authorizationHeader))
-            {
-                // Authorization header is missing
-                return ("Authorization header is missing.");
-            }
+        //    var token = ExtractTokenfromHeader(httpContext);
+        //    try
+        //    {
+        //        var principal = new JwtSecurityTokenHandler().ValidateToken(token, tokenParameters, out _);
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("Invalid with Exception: {0}", ex);
+        //        // Invalid token
+        //        return false;
+        //    }
+ 
+        //}
+        //public string ExtractTokenfromHeader(HttpContext httpContext)
+        //{
+        //    string authorizationHeader = httpContext.Request.Headers["Authorization"];
 
-            // Check if the Authorization header has the Bearer scheme
-            if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                // Invalid or unsupported authorization scheme
-                return ("Invalid or unsupported authorization scheme.");
-            }
+        //    if (string.IsNullOrWhiteSpace(authorizationHeader))
+        //    {
+        //        // Authorization header is missing
+        //        return ("Authorization header is missing.");
+        //    }
 
-            // Extract the token from the Authorization header
-            string token = authorizationHeader["Bearer ".Length..].Trim();
-            var principal = new JwtSecurityTokenHandler().ValidateToken(jwtToken, tokenParameters, out _);
+        //    // Check if the Authorization header has the Bearer scheme
+        //    if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        // Invalid or unsupported authorization scheme
+        //        return ("Invalid or unsupported authorization scheme.");
+        //    }
 
-            return "true";
-        }
+
+        //    // Extract the token from the Authorization header
+        //    return authorizationHeader["Bearer ".Length..].Trim();
+        //}
 
     }
 }

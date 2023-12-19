@@ -7,7 +7,7 @@ namespace ConverterRestApi.TokenHelper
     public class RefreshTokenHelper : IRefreshToken
     {
         private readonly ConverterRestApiContext _context;
-
+        
         public RefreshTokenHelper()
         {
         }
@@ -59,6 +59,19 @@ namespace ConverterRestApi.TokenHelper
             }
 
             return refreshToken;
+        }
+
+        public bool ValidateRefreshToken(string userId, string userPhone)
+        {
+            string refreshToken = _context.RefreshToken.FirstOrDefault(refresh => refresh.UserId == userId && refresh.Phone == userPhone).RefreshToken;
+            if (refreshToken != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

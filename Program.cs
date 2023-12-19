@@ -9,7 +9,6 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using ConverterRestApi.TokenHelper;
 
-
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ConverterRestApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ConverterRestApiContext") ?? throw new InvalidOperationException("Connection string 'ConverterRestApiContext' not found.")));
@@ -111,10 +110,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllers();
 app.UseCors("CorsPolicy");

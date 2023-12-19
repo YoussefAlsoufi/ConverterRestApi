@@ -106,23 +106,22 @@ namespace ConverterRestApi.Controllers
                 // Generate Access Token:
                 if (creds.Role == "admin")
                 {
-                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, creds, 43200);
+                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken( creds, 43200);
 
                 }
                 else
                 {
-                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(userCred, creds, 1);
+                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken( creds, 1);
 
                     // Generate a Refresh Token:
                     IRefreshToken refreshTokenGenerator = new RefreshTokenHelper(_context);
                     responseToken.RefreshToken = refreshTokenGenerator.RefreshTokenGenerator(creds, userCred);
                 }
-
+                responseToken.JwtToken = jwtToken;
                 try
                 {
-                    responseToken.JwtToken = jwtToken;
-                    accessToken.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters, HttpContext);
-                    //var principal =  AccessTokenValidity.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters);
+
+                    //accessToken.ValidateAccessToken(responseToken.JwtToken, tokenValidationParameters, HttpContext);
                     // Token is valid
                     Console.WriteLine("Valid");
                     return Ok(responseToken);
