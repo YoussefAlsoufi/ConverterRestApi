@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using ConverterRestApi.TokenHelper;
+using Autofac.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ConverterRestApiContext>(options =>
@@ -36,6 +37,9 @@ builder.Services.AddSwaggerGen();
 //use Interfaces:
 builder.Services.AddSingleton<IRefreshToken>(provider => new RefreshTokenHelper());
 
+//adding the HttpClientFactory services:
+builder.Services.AddHttpClient();
+
 
 var authKey = configuration.GetValue<string>("JWTSettings:SecretKey");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(item =>
@@ -50,7 +54,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateIssuerSigningKey = true,
         ValidAudience = builder.Configuration["JWTSettings:Audience"],
         ValidIssuer = builder.Configuration["JWTSettings:Issuer"],
-        ClockSkew = TimeSpan.FromHours(2),
+        ClockSkew = TimeSpan.FromMinutes(2),
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authKey))
 
     };
@@ -114,6 +118,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<TokenRefreshMiddleware>();
 
 app.MapControllers();
 app.UseCors("CorsPolicy");

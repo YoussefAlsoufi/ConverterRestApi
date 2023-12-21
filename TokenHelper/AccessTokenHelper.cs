@@ -31,9 +31,9 @@ namespace ConverterRestApi.TokenHelper
                 new Claim(JwtRegisteredClaimNames.Sub, subject),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-                new Claim(ClaimTypes.Name, creds.UserName),
+                new Claim("username", creds.UserName),
                 new Claim(ClaimTypes.Email, creds.Email),
-                new Claim(ClaimTypes.MobilePhone, creds.Phone),
+                new Claim("phone", creds.Phone),
                 new Claim(ClaimTypes.Role, creds.Role)
             };
 

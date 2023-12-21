@@ -9,6 +9,7 @@ using ConverterRestApi.TokenHelper;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
+using Newtonsoft.Json;
 
 namespace ConverterRestApi.Controllers
 {
@@ -107,7 +108,7 @@ namespace ConverterRestApi.Controllers
                 if (creds.Role == "admin")
                 {
                     (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken( creds, 43200);
-
+                    
                 }
                 else
                 {

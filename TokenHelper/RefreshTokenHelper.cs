@@ -1,5 +1,9 @@
 ﻿using ConverterRestApi.Data;
+using ConverterRestApi.Helper;
 using ConverterRestApi.Model;
+using Newtonsoft.Json;
+using NuGet.Configuration;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 
 namespace ConverterRestApi.TokenHelper
@@ -63,6 +67,7 @@ namespace ConverterRestApi.TokenHelper
 
         public bool ValidateRefreshToken(string userId, string userPhone)
         {
+            
             string refreshToken = _context.RefreshToken.FirstOrDefault(refresh => refresh.UserId == userId && refresh.Phone == userPhone).RefreshToken;
             if (refreshToken != null)
             {
@@ -71,6 +76,21 @@ namespace ConverterRestApi.TokenHelper
             else
             {
                 return false;
+            }
+        }
+
+        public string Test(string? accessToken, string? username, string? phone)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jsonToken = tokenHandler.ReadToken(accessToken) as JwtSecurityToken;
+            string refreshToken = _context.RefreshToken.FirstOrDefault(refresh => refresh.UserId == username && refresh.Phone == phone).RefreshToken;
+            if (refreshToken != null)
+            {
+                return refreshToken;
+            }
+            else
+            {
+                return "";
             }
         }
     }
