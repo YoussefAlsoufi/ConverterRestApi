@@ -64,34 +64,22 @@ namespace ConverterRestApi.TokenHelper
 
             return refreshToken;
         }
-
-        public bool ValidateRefreshToken(string userId, string userPhone)
+        public bool ValidateRefreshToken(CredentialsParameters creds )
         {
-            
-            string refreshToken = _context.RefreshToken.FirstOrDefault(refresh => refresh.UserId == userId && refresh.Phone == userPhone).RefreshToken;
-            if (refreshToken != null)
+            var refreshTokenEntity = _context.RefreshToken.FirstOrDefault(refresh => refresh.UserId == creds.UserName && refresh.Phone == creds.Phone && refresh.Email == creds.Email);
+            var currentTime = DateTime.Now;
+            if (refreshTokenEntity != null)
             {
-                return true;
+                DateTime expirationTime = refreshTokenEntity.ExpirationTime;
+                TimeSpan difference = expirationTime - currentTime;
+                var t = difference.TotalDays;
+
+                return difference.TotalDays < 30;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
+
         }
 
-        public string Test(string? accessToken, string? username, string? phone)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jsonToken = tokenHandler.ReadToken(accessToken) as JwtSecurityToken;
-            string refreshToken = _context.RefreshToken.FirstOrDefault(refresh => refresh.UserId == username && refresh.Phone == phone).RefreshToken;
-            if (refreshToken != null)
-            {
-                return refreshToken;
-            }
-            else
-            {
-                return "";
-            }
-        }
     }
 }

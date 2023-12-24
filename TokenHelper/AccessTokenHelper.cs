@@ -1,9 +1,6 @@
 ﻿using ConverterRestApi.Migrations;
 using ConverterRestApi.Model;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -31,9 +28,9 @@ namespace ConverterRestApi.TokenHelper
                 new Claim(JwtRegisteredClaimNames.Sub, subject),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-                new Claim("username", creds.UserName),
-                new Claim(ClaimTypes.Email, creds.Email),
-                new Claim("phone", creds.Phone),
+                new Claim("UserName", creds.UserName),
+                new Claim("Email", creds.Email),
+                new Claim("Phone", creds.Phone),
                 new Claim(ClaimTypes.Role, creds.Role)
             };
 
@@ -57,45 +54,6 @@ namespace ConverterRestApi.TokenHelper
             return (tokenParameters, jwtToken);
 
         }
-
-        //public bool ValidateAccessToken(TokenValidationParameters tokenParameters, HttpContext httpContext)
-        //{
-
-        //    var token = ExtractTokenfromHeader(httpContext);
-        //    try
-        //    {
-        //        var principal = new JwtSecurityTokenHandler().ValidateToken(token, tokenParameters, out _);
-        //        return true;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine("Invalid with Exception: {0}", ex);
-        //        // Invalid token
-        //        return false;
-        //    }
- 
-        //}
-        //public string ExtractTokenfromHeader(HttpContext httpContext)
-        //{
-        //    string authorizationHeader = httpContext.Request.Headers["Authorization"];
-
-        //    if (string.IsNullOrWhiteSpace(authorizationHeader))
-        //    {
-        //        // Authorization header is missing
-        //        return ("Authorization header is missing.");
-        //    }
-
-        //    // Check if the Authorization header has the Bearer scheme
-        //    if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-        //    {
-        //        // Invalid or unsupported authorization scheme
-        //        return ("Invalid or unsupported authorization scheme.");
-        //    }
-
-
-        //    // Extract the token from the Authorization header
-        //    return authorizationHeader["Bearer ".Length..].Trim();
-        //}
 
     }
 }

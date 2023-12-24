@@ -118,7 +118,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<TokenRefreshMiddleware>();
 
 app.MapControllers();
 app.UseCors("CorsPolicy");

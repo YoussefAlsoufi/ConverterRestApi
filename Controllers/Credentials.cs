@@ -7,9 +7,6 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using ConverterRestApi.TokenHelper;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Options;
-using System.Security.Claims;
-using Newtonsoft.Json;
 
 namespace ConverterRestApi.Controllers
 {
@@ -137,12 +134,52 @@ namespace ConverterRestApi.Controllers
 
             }
         }
-        //public bool IsRefreshTokenExpired(DateTime expirationTime)
-        //{
-        //    // Compare the current time with the expiration time
-        //    return DateTime.UtcNow >= expirationTime;
-        //}
 
+        [HttpPost("Refresh")]
+        public IActionResult RefershToken([FromBody] ResponseToken tokenParameters)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            AccessTokenHelper accessToken = new(_configuration);
+            RefreshTokenHelper refreshHelper = new(_context);
+            //string jwtToken;
+
+            (TokenValidationParameters tokenValidationParameters, string jwtToken) = (null, null);
+
+            if (tokenHandler.ReadToken(tokenParameters.JwtToken) is JwtSecurityToken claimsPrincipal)
+            {
+                // Access the "UserName" claim
+                var usernameClaim = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "UserName");
+                string username = usernameClaim?.Value ?? "No UserName claim found";
+
+                // Access the "Phone" claim
+                var phoneClaim = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "Phone");
+                string phone = phoneClaim?.Value ?? "No Phone claim found";
+
+                // Access the "Email" claim
+                var emailClaim = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "Email");
+                string email = emailClaim?.Value ?? "No Email claim found";
+
+                var creds = _context.Credentials.FirstOrDefault(i => i.UserName == username && i.Email == email && i.Phone == phone);
+
+                if (creds != null && refreshHelper.ValidateRefreshToken(creds))
+                {
+                    (tokenValidationParameters, jwtToken) = accessToken.GenerateAccessToken(creds, 1);
+                    tokenParameters.JwtToken = jwtToken;
+                }
+                else
+                {
+                    return Unauthorized();
+                }
+
+            }
+            else
+            {
+                return Unauthorized();
+            }
+
+            return Ok(tokenParameters);
+        }
 
     }
+    
 }
