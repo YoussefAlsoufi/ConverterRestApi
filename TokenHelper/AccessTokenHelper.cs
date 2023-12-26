@@ -11,7 +11,6 @@ namespace ConverterRestApi.TokenHelper
     {
         private readonly IConfiguration _configuration;
         private List<Claim>? claims;
-
         public AccessTokenHelper(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -54,6 +53,30 @@ namespace ConverterRestApi.TokenHelper
             return (tokenParameters, jwtToken);
 
         }
+        public bool IsTokenInvalidOrExpired(string accessToken)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(_configuration.GetValue<string>("JWTSettings:SecretKey"))),
+                ValidIssuer = _configuration.GetValue<string>("JWTSettings:Issuer"),
+                ValidAudience = _configuration.GetValue<string>("JWTSettings:Audience")
+            };
 
+            try
+            {
+                // Try to validate the token
+                tokenHandler.ValidateToken(accessToken, validationParameters, out _);
+                return true; // Token is valid
+            }
+            catch (SecurityTokenException)
+            {
+                return false; // Token validation failed
+            }
+        }
     }
 }
