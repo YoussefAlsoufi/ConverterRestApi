@@ -64,7 +64,7 @@ namespace ConverterRestApi.TokenHelper
 
             return refreshToken;
         }
-        public bool ValidateRefreshToken(CredentialsParameters creds )
+        public bool ValidateRefreshToken(CredentialsParameters creds)
         {
             var refreshTokenEntity = _context.RefreshToken.FirstOrDefault(refresh => refresh.UserId == creds.UserName && refresh.Phone == creds.Phone && refresh.Email == creds.Email);
             var currentTime = DateTime.Now;

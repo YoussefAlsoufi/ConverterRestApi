@@ -1,5 +1,6 @@
 ﻿using ConverterRestApi.Migrations;
 using ConverterRestApi.Model;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -53,8 +54,14 @@ namespace ConverterRestApi.TokenHelper
             return (tokenParameters, jwtToken);
 
         }
-        public bool IsTokenInvalidOrExpired(string accessToken)
+        public bool IsTokenValid(string accessToken)
         {
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                // Log or handle the case where the token is null or empty
+                return false;
+            }
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var validationParameters = new TokenValidationParameters
             {
@@ -62,20 +69,37 @@ namespace ConverterRestApi.TokenHelper
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(_configuration.GetValue<string>("JWTSettings:SecretKey"))),
                 ValidIssuer = _configuration.GetValue<string>("JWTSettings:Issuer"),
-                ValidAudience = _configuration.GetValue<string>("JWTSettings:Audience")
+                ValidAudience = _configuration.GetValue<string>("JWTSettings:Audience"),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("JWTSettings:SecretKey")))
             };
 
             try
             {
-                // Try to validate the token
-                tokenHandler.ValidateToken(accessToken, validationParameters, out _);
+                // Log the token before validation
+                Console.WriteLine($"Token before validation: {accessToken}");
+
+                // Validate the token and capture the validated token
+                tokenHandler.ValidateToken(accessToken, validationParameters, out SecurityToken validatedToken);
+
+                // Log the properties of the validated token
+                Console.WriteLine($"ValidTo: {validatedToken.ValidTo}");
+
+                // If the validation passed, check the token's expiration separately
+                if (validatedToken.ValidTo < DateTime.UtcNow)
+                {
+                    // Log the case where the token is expired
+                    Console.WriteLine("Token is expired");
+                    return false;
+                }
+
                 return true; // Token is valid
             }
-            catch (SecurityTokenException)
+            catch (SecurityTokenException ex)
             {
-                return false; // Token validation failed
+                // Log the exception and return false
+                Console.WriteLine($"Token validation failed: {ex.Message}");
+                return false;
             }
         }
     }

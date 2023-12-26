@@ -136,6 +136,7 @@ namespace ConverterRestApi.Controllers
         }
 
         [HttpPost("Refresh")]
+        [AllowAnonymous]
         public IActionResult RefershToken([FromBody] ResponseToken tokenParameters)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
