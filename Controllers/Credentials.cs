@@ -178,7 +178,7 @@ namespace ConverterRestApi.Controllers
                 return Unauthorized();
             }
 
-            return Ok(tokenParameters);
+            return Ok(tokenParameters.JwtToken);
         }
 
     }
